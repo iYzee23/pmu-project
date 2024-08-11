@@ -1,0 +1,56 @@
+Student:	- Predrag Pesic 2020/0023, pp200023d@student.etf.bg.ac.rs
+
+Mentor:		- mast. inz. Marko Micovic, micko@etf.rs
+
+Naziv:		- Vizuelizacija rada prozivoljnih algoritama za soritranje celobrojnih nizova sa testovima znanja
+
+Ideja:		- Korisnik unosi naziv i source code algoritma za koji zeli da prikaze vizuelizaciju (1. tab)
+			- Naziv i source code se pamte u bazi podataka, kako bi kasnije mogli biti iskorisceni ili za vizuelizaciju ili za testove znanja
+			- Nakon unosenja naziva, korisniku se otvara modal kojim se ovaj pita da li zeli da potvrdi izbor
+			/ Potvrda izbora se vrsi koriscenjem nekih senzora, na primer drmanjem telefona ili nesto slicno
+			/ Vizuelizacija ide brze ako korisnik drma telefon
+			* Unos teksta ne treba da bude basic unos
+			* Npr neki syntax highlighting, auto-complete (npr ima Gmail fazon onaj dobar), promena teme (dark/light)
+			* Slajder brzine vizuelizacije
+			* Bilo bi kul da nadjem neku biblioteku koja radi taj posao (trazi i 3 dana ako je potrebno)
+			! Zapisuj sve i ono lose, zbog word rada !
+			! ChatGpt moze da pripomogne !
+			
+			- Klikom na 2. tab, korisnik ima opciju izbora naziva algoritma, dugme SORT (eventualno jos neke opcije) i deo na kome se vrsi graficki prikaz
+			- Vizuealizacija se izvrsava u jednoj niti (korutini), u drugoj niti se npr moze dodati neka reakcija ili slicno
+			* Koji jezici su podrzani (Kotlin, Python, ...)
+			* Ok je i samo jedan da bude podrzan
+			* Ako je lako, mozemo da prosirimo
+			* Na koji nacin ce korisnik da radi
+			* Interakcija sa nizom ide kroz neke moje funkcije, koja aplicira i vizuelizaciji
+			* Slozenost algoritma !!!!
+			
+			- Klikom na 3. tab, korisnik ima opciju izbora naziva algoritma, dugme GENERATE QUIZ, cijim se klikom prikazuje lista pitanja za izabrani algoritam
+			- Sva pitanja i odgovori se nalaze na KTOR serveru, dugmetom GENERATE QUIZ se na nasumican naziv izabiraju neka od pitanja
+			* Potencijalna integracija sa AI
+			* Ovo je bas opciono !!!
+
+Elementi:	- Compose, StateLists, ViewModel, Navigation: za GUI prikaz i njegovih funkcionalnosti
+			- Coroutines, Services: za vizuelizaciju
+			- Room, Hilt: za cuvanje starih i novih algoritama
+			- Sensors: za reakcije i potvrdu unosa algoritma
+			- Rest, Ktor: za generisanje kviza
+
+**	Alternative za elemente, pa biramo najbolju
+	--> Npr, ima najbolju podrsku od community-ja pa smo zbog toga izabrali ili nesto slicno
+**	Kao neko istrazivanje za word dokument
+	Slobodno mogu da dodajem i nesto jos dodatno zanimljivo
+	--> AI moze da pomogne na nacin da tumaci user kod i da npr ga uporedi sa nekim poznatim algoritmom
+	--> Neki link ka tome ili slicno
+**	Neke izazovnije stvari nemoj raditi sam
+	Nadji nesto gotovo ili biblioteka
+
+**	Zapisuj sve sto radis
+	--> Min 30 stranica, nema live demoa vec samo prezentacija
+	--> Kada prijavim, potrebno je do nedelju dana da SS spremi sve kako bih izasao na odbranu
+	--> Treba da se dogovorimo nas trojica + slobodne sale + publika
+**	Odbrana nije vezana za ispitni rok
+	--> Do 29./30. septembra diplomirati (zavisi od prodekana za nastavu)
+	--> Odbrana moze biti i kasnije, pa da se upise da je bila ranije itd itd
+**	Impl bi trebalo da bude gotova do 10. septembra, prioritizirati ovo
+	Za 3 dobre strane, 1 dan

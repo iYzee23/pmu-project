@@ -1,0 +1,62 @@
+[
+    {
+        "question": "What sorting algorithm is implemented in the provided code?",
+        "answers": [
+            { "0": "Bubble Sort" },
+            { "1": "Selection Sort" },
+            { "2": "Insertion Sort" },
+            { "3": "Merge Sort" }
+        ],
+        "correct_answers": [2]
+    },
+    {
+        "question": "What is the best-case time complexity of this algorithm?",
+        "answers": [
+            { "0": "O(n)" },
+            { "1": "O(n log n)" },
+            { "2": "O(n^2)" },
+            { "3": "O(log n)" }
+        ],
+        "correct_answers": [0]
+    },
+    {
+        "question": "What is the worst-case time complexity of this algorithm?",
+        "answers": [
+            { "0": "O(n)" },
+            { "1": "O(n log n)" },
+            { "2": "O(n^2)" },
+            { "3": "O(n^3)" }
+        ],
+        "correct_answers": [2]
+    },
+    {
+        "question": "Which of the following statements is true about this algorithm?",
+        "answers": [
+            { "0": "It uses a divide-and-conquer strategy" },
+            { "1": "It is stable" },
+            { "2": "It uses a fixed number of iterations for all inputs" },
+            { "3": "It has a space complexity of O(n)" }
+        ],
+        "correct_answers": [1]
+    },
+    {
+        "question": "How does the implementation of this algorithm keep track of its progress?",
+        "answers": [
+            { "0": "By using a 'steps' list to record the array's state after each key operation" },
+            { "1": "By using recursion" },
+            { "2": "By implementing nested loops only" },
+            { "3": "By employing extra space proportional to the size of the input array" }
+        ],
+        "correct_answers": [0]
+    },
+    {
+        "question": "Can the given algorithm be improved in terms of time complexity?",
+        "answers": [
+            { "0": "No, this is the most optimized version" },
+            { "1": "Yes, by using a different sorting algorithm like Quick Sort or Merge Sort" },
+            { "2": "No, the inherent complexity of insertion sort cannot be improved" },
+            { "3": "Yes, by using a different sorting algorithm like Bubble Sort or Selection Sort" }
+        ],
+        "correct_answers": [1, 3]
+    }
+]
