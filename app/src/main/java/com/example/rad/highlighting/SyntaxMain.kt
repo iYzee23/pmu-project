@@ -37,7 +37,6 @@ import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.highlight.theme.CodeTheme
 import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SyntaxMain(
     textFieldValue: TextFieldValue,
@@ -84,6 +83,7 @@ fun SyntaxMain(
                 .background(Color.Black)
                 .onPreviewKeyEvent { event ->
                     if (event.key == Key.Enter && event.type == KeyEventType.KeyDown) {
+                        // Handle Enter Key: Indentation logic
                         val cursorPosition = textFieldValue.selection.start
                         val textBeforeCursor = textFieldValue.text.substring(0, cursorPosition)
                         val currentLine = textBeforeCursor.substringAfterLast('\n')
@@ -105,6 +105,61 @@ fun SyntaxMain(
                             )
                         )
                         true
+                    } else if (event.key == Key.Backspace && event.type == KeyEventType.KeyDown) {
+                        // Handle backspace for blank lines or joining lines
+                        val cursorPosition = textFieldValue.selection.start
+                        if (cursorPosition > 0) {
+                            val textBeforeCursor = textFieldValue.text.substring(0, cursorPosition)
+                            val currentLine = textBeforeCursor.substringAfterLast('\n')
+
+                            // Check if the current line is empty (just spaces/tabs) and cursor is at the start
+                            if (currentLine.isBlank()) {
+                                val currentLineStartPos = textBeforeCursor.lastIndexOf('\n') + 1
+
+                                // If the cursor is at the beginning of the line
+                                if (cursorPosition == currentLineStartPos) {
+                                    // Handle backspacing into the previous line
+                                    val previousLineEnd = textBeforeCursor.lastIndexOf('\n')  // End of the previous line
+                                    val previousLineStart = textBeforeCursor.lastIndexOf('\n', previousLineEnd - 1)
+
+                                    // Calculate new cursor position after removing the newline character
+                                    val newCursorPos = (previousLineEnd).coerceAtLeast(0)
+                                    val newText = buildString {
+                                        append(textFieldValue.text.substring(0, previousLineEnd))
+                                        append(textFieldValue.text.substring(cursorPosition))
+                                    }
+
+                                    // Update the text and set the new cursor position at the end of the previous line
+                                    onValueChange(
+                                        textFieldValue.copy(
+                                            text = newText,
+                                            selection = TextRange(newCursorPos),
+                                        )
+                                    )
+                                    true
+                                } else {
+                                    // Handle removing spaces (default 4 spaces back)
+                                    val newCursorPos = (cursorPosition - 4).coerceAtLeast(currentLineStartPos)
+                                    val newText = buildString {
+                                        append(textFieldValue.text.substring(0, newCursorPos))
+                                        append(textFieldValue.text.substring(cursorPosition))
+                                    }
+
+                                    // Apply changes: move cursor back by 4 spaces or stop at newline
+                                    onValueChange(
+                                        textFieldValue.copy(
+                                            text = newText,
+                                            selection = TextRange(newCursorPos),
+                                        )
+                                    )
+                                    true
+                                }
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        }
                     } else {
                         false
                     }

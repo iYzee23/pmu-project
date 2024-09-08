@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +23,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,14 @@ fun InformationAndQuizScreen(
     var showQuizHistory by remember { mutableStateOf(false) }
     var quizHistoryList by remember { mutableStateOf<List<QuizHistory>>(emptyList()) }
 
+    // GPT Response Handling
+    val chatGResponse by chatViewModel.gptResponse.observeAsState(initial = "")
+    val chatGError by chatViewModel.gptError.observeAsState(initial = "")
+
+    LaunchedEffect(Unit) {
+        viewModel.updateAlgorithmCode("")
+    }
+
     // Load algorithm names on launch
     LaunchedEffect(Unit) {
         databaseViewModel.getAllAlgorithmNames { names ->
@@ -59,7 +70,10 @@ fun InformationAndQuizScreen(
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
         // Dropdown for selecting an algorithm
         ExposedDropdownMenuBox(
             expanded = isDropdownExpanded,
@@ -101,8 +115,54 @@ fun InformationAndQuizScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { showQuizHistory = true }) {
-            Text(text = "Show Quiz History")
+        Row (
+            horizontalArrangement = Arrangement.spacedBy(16.dp), // Adds equal spacing between buttons
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().height(80.dp)
+        ) {
+            if (!showQuizHistory) {
+                Button(
+                    onClick = { showQuizHistory = true },
+                    enabled = selectedAlgorithmName.isNotEmpty()
+                ) {
+                    Text(text = "Show History")
+                }
+
+                if (chatGResponse.isNotEmpty()) {
+                    gResponse = chatGResponse
+                    when (chatViewModel.currType.value) {
+                        0 -> {
+                            val quiz = parseQuizJson(gResponse)
+                            QuizComponent(
+                                quiz = quiz,
+                                algorithmName = selectedAlgorithmName,
+                                databaseViewModel = databaseViewModel
+                            )
+                        }
+                        1 -> {
+                            val algorithmInfo = parseAlgorithmInfoJson(gResponse)
+                            AlgorithmComponent(algorithmInfo = algorithmInfo)
+                        }
+                        2 -> {
+                            val (algorithmComparisons, improvementSuggestions) = parseAlgorithmComparisonsJson(gResponse)
+                            ComparisonComponent(
+                                algorithmComparisons = algorithmComparisons,
+                                improvementSuggestions = improvementSuggestions!!
+                            )
+                        }
+                    }
+                } else if (chatGError.isNotEmpty()) {
+                    gError = chatGError
+                    Text(text = gError, color = Color.Red)
+                }
+            }
+            else {
+                Button(
+                    onClick = { showQuizHistory = false }
+                ) {
+                    Text(text = "Show Information page")
+                }
+            }
         }
 
         if (showQuizHistory) {
@@ -116,7 +176,8 @@ fun InformationAndQuizScreen(
             viewModel = viewModel,
             inputArrayFix = "1, 2, 3, 4, 5",
             onClicked = {},
-            isEditable = false
+            isEditable = false,
+            visibleButton = false
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -126,57 +187,29 @@ fun InformationAndQuizScreen(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Button(onClick = {
+            Button(
+                enabled = selectedAlgorithmName.isNotEmpty(),
+                onClick = {
                 chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)  // Quiz request
             }) {
                 Text(text = "Quiz")
             }
 
-            Button(onClick = {
+            Button(
+                enabled = selectedAlgorithmName.isNotEmpty(),
+                onClick = {
                 chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 1)  // Complexity request
             }) {
                 Text(text = "Complexity")
             }
 
-            Button(onClick = {
+            Button(
+                enabled = selectedAlgorithmName.isNotEmpty(),
+                onClick = {
                 chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 2)  // Comparison request
             }) {
                 Text(text = "Comparison")
             }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // GPT Response Handling
-        val chatGResponse by chatViewModel.gptResponse.observeAsState(initial = "")
-        val chatGError by chatViewModel.gptError.observeAsState(initial = "")
-
-        if (chatGResponse.isNotEmpty()) {
-            gResponse = chatGResponse
-            when (chatViewModel.currType.value) {
-                0 -> {
-                    val quiz = parseQuizJson(gResponse)
-                    QuizComponent(
-                        quiz = quiz,
-                        algorithmName = selectedAlgorithmName,
-                        databaseViewModel = databaseViewModel
-                    )
-                }
-                1 -> {
-                    val algorithmInfo = parseAlgorithmInfoJson(gResponse)
-                    AlgorithmComponent(algorithmInfo = algorithmInfo)
-                }
-                2 -> {
-                    val (algorithmComparisons, improvementSuggestions) = parseAlgorithmComparisonsJson(gResponse)
-                    ComparisonComponent(
-                        algorithmComparisons = algorithmComparisons,
-                        improvementSuggestions = improvementSuggestions!!
-                    )
-                }
-            }
-        } else if (chatGError.isNotEmpty()) {
-            gError = chatGError
-            Text(text = gError, color = Color.Red)
         }
     }
 }

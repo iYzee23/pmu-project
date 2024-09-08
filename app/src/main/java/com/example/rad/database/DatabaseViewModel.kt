@@ -27,21 +27,30 @@ class DatabaseViewModel(
         }
     }
 
-    fun insertAlgorithm(algorithm: Algorithm) {
+    // Insert an algorithm and then get all names
+    fun insertAlgorithm(algorithm: Algorithm, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.insertAlgorithm(algorithm)
+            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            callback(names)
         }
     }
 
-    fun deleteAlgorithm(name: String) {
+    // Delete an algorithm and then get all names
+    fun deleteAlgorithm(name: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.deleteAlgorithm(name)
+            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            callback(names)
         }
     }
 
-    fun updateAlgorithm(name: String, code: String) {
+    // Update an algorithm and then get all names
+    fun updateAlgorithm(name: String, code: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.updateAlgorithm(name, code)
+            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            callback(names)
         }
     }
 

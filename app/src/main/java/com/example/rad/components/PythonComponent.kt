@@ -29,13 +29,13 @@ import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
 import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
 import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PythonComponent(
     viewModel: AlgorithmViewModel,
     onClicked: (String) -> Unit,
     inputArrayFix: String,
-    isEditable: Boolean
+    isEditable: Boolean,
+    visibleButton: Boolean
 ) {
     val userCode by viewModel.algorithmCode // Observe algorithmCode from ViewModel
     var inputArray by remember { mutableStateOf(inputArrayFix) }
@@ -71,20 +71,22 @@ fun PythonComponent(
             readOnly = !isEditable
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         // Run Button
-        Button(
-            onClick = {
-                val inputArrayParsed = parseInputArray(inputArray)
-                val userCode = textFieldValue.text
-                viewModel.checkPythonCode(userCode, inputArrayParsed) { resultText ->
-                    onClicked(resultText)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(if (isEditable) "Run" else "Delete")
+        if (visibleButton) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    val inputArrayParsed = parseInputArray(inputArray)
+                    val userCode = textFieldValue.text
+                    viewModel.checkPythonCode(userCode, inputArrayParsed) { resultText ->
+                        onClicked(resultText)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (isEditable) "Run" else "Delete")
+            }
         }
     }
 }

@@ -1,17 +1,17 @@
 package com.example.rad.database
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.rad.algorithm.AlgorithmViewModel
@@ -37,6 +36,10 @@ fun InsertOrChangeAlgorithm(
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var isNameFieldEnabled by remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        viewModel.updateAlgorithmCode("")
+    }
+
     // Load all algorithm names
     LaunchedEffect(Unit) {
         databaseViewModel.getAllAlgorithmNames { names ->
@@ -44,7 +47,11 @@ fun InsertOrChangeAlgorithm(
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         // Dropdown to select or insert algorithm
         ExposedDropdownMenuBox(
             expanded = isDropdownExpanded,
@@ -96,6 +103,17 @@ fun InsertOrChangeAlgorithm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Code writing hint for the user
+        Text(
+            text = """
+                - Function must be named "sort" and have exactly one parameter "arr" that represents the array to be sorted or modified.
+                - Function must contain a list named "steps", which is the return value of the function.
+                - In the "steps" list, each new iteration of the algorithm should be placed.
+            """.trimIndent(),
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         // PythonComponent for algorithm code input
         PythonComponent(
             viewModel = viewModel,
@@ -103,31 +121,35 @@ fun InsertOrChangeAlgorithm(
             onClicked = { resultText ->
                 result = resultText
                 if (resultText == "No errors found.") {
-                    databaseViewModel.getAlgorithm(selectedAlgorithmName) { existingAlgorithm ->
-                        if (existingAlgorithm != null) {
-                            // Algorithm exists, update it
-                            val updatedAlgorithm = existingAlgorithm.copy(
-                                code = viewModel.algorithmCode.value
-                            )
-                            databaseViewModel.updateAlgorithm(selectedAlgorithmName, viewModel.algorithmCode.value)
-                            result = "Algorithm has been successfully updated."
-                        } else {
-                            // Algorithm doesn't exist, insert new
-                            val newAlgorithm = Algorithm(
-                                name = selectedAlgorithmName,
-                                code = viewModel.algorithmCode.value
-                            )
-                            databaseViewModel.insertAlgorithm(newAlgorithm)
-                            result = "Algorithm has been successfully inserted."
-                        }
-
-                        databaseViewModel.getAllAlgorithmNames { names ->
-                            algorithmNames = listOf("") + names // Update the dropdown with the new list
+                    // If creating a new algorithm, check if the name already exists
+                    if (isNameFieldEnabled && algorithmNames.contains(selectedAlgorithmName)) {
+                        result = "Cannot insert algorithm with the name that already exists."
+                    } else {
+                        // Check if the algorithm exists and then either update or insert it
+                        databaseViewModel.getAlgorithm(selectedAlgorithmName) { existingAlgorithm ->
+                            if (existingAlgorithm != null) {
+                                // Algorithm exists, update it
+                                databaseViewModel.updateAlgorithm(selectedAlgorithmName, viewModel.algorithmCode.value) { names ->
+                                    algorithmNames = listOf("") + names // Update the dropdown with the new list
+                                    result = "Algorithm has been successfully updated."
+                                }
+                            } else {
+                                // Algorithm doesn't exist, insert new one
+                                val newAlgorithm = Algorithm(
+                                    name = selectedAlgorithmName,
+                                    code = viewModel.algorithmCode.value
+                                )
+                                databaseViewModel.insertAlgorithm(newAlgorithm) { names ->
+                                    algorithmNames = listOf("") + names // Update the dropdown with the new list
+                                    result = "Algorithm has been successfully inserted."
+                                }
+                            }
                         }
                     }
                 }
             },
-            isEditable = true
+            isEditable = true,
+            visibleButton = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))

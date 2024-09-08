@@ -30,7 +30,7 @@ fun ComparisonComponent(
         verticalArrangement = Arrangement.Center
     ) {
         Button(onClick = { showDialog = true }) {
-            Text(text = "Show Algorithm Comparisons")
+            Text(text = "Show Comparisons")
         }
 
         if (showDialog) {

@@ -93,10 +93,14 @@ fun VisualizerScreen(
                 val inputArrayParsed = parseInputArray(inputArray)
                 if (inputArrayParsed != null) {
                     viewModel.runPythonCode(viewModel.algorithmCode.value, inputArrayParsed) { resultText ->
-                        result = resultText
+                        result = ""
                         Log.d("usp", resultText)
                     }
-                } else {
+                }
+                else if (selectedAlgorithmName == "") {
+                    result = "You must select algorithm."
+                }
+                else {
                     result = "Invalid input array format."
                 }
             },
@@ -107,15 +111,15 @@ fun VisualizerScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Visualizer component
-        VisComponent(viewModel = viewModel)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Display result if needed
         if (result.isNotEmpty()) {
             Text(text = "Result: $result", color = if (result == "No errors found.") Color.Green else Color.Red)
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Visualizer component
+        VisComponent(viewModel = viewModel)
     }
 }
 
