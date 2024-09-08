@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 
 @Composable
 fun VisMain(
@@ -27,15 +28,20 @@ fun VisMain(
             maxWidth / arr.size - 8.dp
         }
 
+        // Find the maximum value in the array to normalize all heights
+        val maxValue = arr.maxOrNull()?.toFloat() ?: 1f
+
         Row(
             modifier = modifier,
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
             arr.forEach {
+                // Normalize the height by scaling it based on the maximum value and the available height
+                val normalizedHeight = (it * 1.0 / maxValue) * maxHeight
                 Box(
                     modifier = Modifier
-                        .height(if (it.dp > maxHeight) maxHeight else it.dp)
+                        .height(normalizedHeight)
                         .width(itemWidth)
                         .background(MaterialTheme.colorScheme.primary)
                 )

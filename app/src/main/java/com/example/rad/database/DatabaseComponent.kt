@@ -29,17 +29,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.rad.algorithm.AlgorithmViewModel
+import com.example.rad.components.PythonComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatabaseComponent(
-    databaseViewModel: DatabaseViewModel
+    databaseViewModel: DatabaseViewModel,
+    viewModel: AlgorithmViewModel // Added viewModel for PythonComponent
 ) {
     // State variables
     var algorithmCode by remember { mutableStateOf<String?>(null) }
 
     var insertAlgorithmName by remember { mutableStateOf("") }
-    var insertAlgorithmCode by remember { mutableStateOf("") }
 
     var selectedAlgorithmNameForDeletion by remember { mutableStateOf("") }
     var selectedAlgorithmNameForViewing by remember { mutableStateOf("") }
@@ -75,25 +77,20 @@ fun DatabaseComponent(
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = insertAlgorithmCode,
-                onValueChange = { insertAlgorithmCode = it },
-                label = { Text("Algorithm Code") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                maxLines = 10
-            )
+
+            // Use PythonComponent for algorithm code input
+            // PythonComponent(viewModel = viewModel)
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Button(
                 onClick = {
                     val algo = Algorithm(
                         name = insertAlgorithmName,
-                        code = insertAlgorithmCode
+                        code = viewModel.arr.value.joinToString(", ") // Save the entered code from PythonComponent
                     )
                     databaseViewModel.insertAlgorithm(algo)
                     insertAlgorithmName = ""
-                    insertAlgorithmCode = ""
                     databaseViewModel.getAllAlgorithmNames { names ->
                         algorithmNames = names
                     }
@@ -185,6 +182,8 @@ fun DatabaseComponent(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Display algorithm code
             Surface {
                 if (algorithmCode != null) {
                     Text(text = algorithmCode ?: "No code found")

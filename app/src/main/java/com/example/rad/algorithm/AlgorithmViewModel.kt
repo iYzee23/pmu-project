@@ -11,6 +11,12 @@ import kotlinx.coroutines.launch
 class AlgorithmViewModel(
     private val algorithm: Algorithm
 ): ViewModel() {
+    var algorithmCode = mutableStateOf("")
+
+    fun updateAlgorithmCode(newCode: String) {
+        algorithmCode.value = newCode
+    }
+
     var arr = mutableStateOf(
         intArrayOf(
             50, 42, 165, 400, 244, 126, 54, 98, 54, 65, 2, 5, 509, 52, 76,
@@ -26,9 +32,9 @@ class AlgorithmViewModel(
 
     private var next = 0
     private var previous = 0
+    private var ind = false
 
-    var sortedArrayLevels = mutableListOf<List<Int>>()
-
+    private var sortedArrayLevels = mutableListOf<List<Int>>()
 
     init {
         viewModelScope.launch {
@@ -40,6 +46,22 @@ class AlgorithmViewModel(
         }
     }
 
+    fun checkPythonCode(userCode: String, inputArray: IntArray, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val py = Python.getInstance()
+            val pyf = py.getModule("validator").callAttr("validate_and_execute", userCode, inputArray)
+
+            val resultMap = pyf.asMap().mapKeys { it.key.toString() }
+
+            val result = if (resultMap.containsKey("error")) {
+                resultMap["error"].toString()
+            } else {
+                "No errors found."
+            }
+
+            onResult(result)
+        }
+    }
 
     fun runPythonCode(userCode: String, inputArray: IntArray, onResult: (String) -> Unit) {
         viewModelScope.launch {
@@ -51,30 +73,25 @@ class AlgorithmViewModel(
             val result = if (resultMap.containsKey("error")) {
                 resultMap["error"].toString()
             } else {
-                // sortedArrayLevels = convertPyObjectToListOfLists(resultMap["steps"]!!)
                 sortedArrayLevels.clear()
+                delay = 150L
+                pause = false
+                sortingState = 0
+                next = 0
+                previous = 0
+                ind = false
                 val steps = resultMap["steps"]!!.asList()
                 for (step in steps) {
                     val stepList = step.asList().map { it.toInt() }.toMutableList()
                     sortedArrayLevels.add(stepList)
                 }
-                resultMap["steps"].toString()
+                arr.value = sortedArrayLevels[0].toIntArray()
+                // resultMap["steps"].toString()
+                "No errors found."
             }
 
             onResult(result)
         }
-    }
-
-    private fun convertPyObjectToListOfLists(pyObject: PyObject): MutableList<List<Int>> {
-        val outerList = mutableListOf<List<Int>>()
-        for (pyInnerList in pyObject.asList()) {
-            val innerList = mutableListOf<Int>()
-            for (pyInt in pyInnerList.asList()) {
-                innerList.add(pyInt.toInt())
-            }
-            outerList.add(innerList)
-        }
-        return outerList
     }
 
     fun onEvent(event: AlgorithmEvents) {
@@ -105,10 +122,13 @@ class AlgorithmViewModel(
 
     private fun play() = viewModelScope.launch {
         pause = false
+        sortingState = if (ind) previous else next
         for (i in sortingState until sortedArrayLevels.size) {
             if (!pause) {
                 delay(delay)
                 arr.value = sortedArrayLevels[i].toIntArray()
+                next = i + 1
+                previous = i
             }
             else {
                 sortingState = i
@@ -137,6 +157,7 @@ class AlgorithmViewModel(
             arr.value = sortedArrayLevels[next].toIntArray()
             ++next
             ++previous
+            ind = true
         }
     }
 
@@ -145,6 +166,7 @@ class AlgorithmViewModel(
             arr.value = sortedArrayLevels[previous].toIntArray()
             --next
             --previous
+            ind = false
         }
     }
 }

@@ -10,9 +10,13 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
 
     val gptResponse: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     val gptError: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    val currType: MutableLiveData<Int> by lazy { MutableLiveData<Int>() }
 
     fun createChatCompletion(message: String, callType: Int) {
         chatRepository.createChatCompletion(message, callType, this)
     }
 
+    fun updateCurrType(newType: Int) {
+        currType.value = newType
+    }
 }

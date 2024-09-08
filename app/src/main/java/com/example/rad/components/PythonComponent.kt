@@ -2,6 +2,7 @@ package com.example.rad.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -10,83 +11,81 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.chaquo.python.PyObject
-import com.chaquo.python.Python
 import com.example.rad.algorithm.AlgorithmViewModel
+import com.example.rad.database.Algorithm
+import com.example.rad.highlighting.SyntaxMain
+import com.wakaztahir.codeeditor.highlight.model.CodeLang
+import com.wakaztahir.codeeditor.highlight.prettify.PrettifyParser
+import com.wakaztahir.codeeditor.highlight.theme.CodeThemeType
+import com.wakaztahir.codeeditor.highlight.utils.parseCodeAsAnnotatedString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PythonComponent(
-    viewModel: AlgorithmViewModel
+    viewModel: AlgorithmViewModel,
+    onClicked: (String) -> Unit,
+    inputArrayFix: String,
+    isEditable: Boolean
 ) {
-    val userCodeStatic = """
-    def sort(arr):
-        steps = []
-        for i in range(1, len(arr)):
-            j = i - 1
-            key = arr[i]
-            while j >= 0 and key < arr[j]:
-                arr[j+1] = arr[j]
-                steps.append(arr[:])
-                j -= 1
-            arr[j+1] = key
-            steps.append(arr[:])
-        return steps
-    """.trimIndent()
-    val inputArrayStatic = """
-    50, 42, 165, 400, 244, 126, 54, 98, 54, 65, 2, 5, 509, 52, 76, 
-    533, 46, 659, 438, 42, 534, 128, 87, 162, 25, 428, 38, 9, 26
-    """.trimIndent()
+    val userCode by viewModel.algorithmCode // Observe algorithmCode from ViewModel
+    var inputArray by remember { mutableStateOf(inputArrayFix) }
 
-    var userCode by remember { mutableStateOf(userCodeStatic) }
-    var inputArray by remember { mutableStateOf(inputArrayStatic) }
-    var result by remember { mutableStateOf("") }
+    val language = CodeLang.Python
+    val parser = remember { PrettifyParser() }
+    val themeState by remember { mutableStateOf(CodeThemeType.Monokai) }
+    val theme = remember(themeState) { themeState.theme() }
+
+    // Proper initialization of the text field
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(userCode)) }
+
+    // Ensure textFieldValue is updated correctly when userCode changes
+    LaunchedEffect(userCode) {
+        textFieldValue = textFieldValue.copy(text = userCode) // Keep the cursor position
+    }
 
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
     ) {
-        TextField(
-            value = userCode,
-            onValueChange = { userCode = it },
-            label = { Text("Enter your Python code") },
-            modifier = Modifier.fillMaxWidth()
+        SyntaxMain(
+            textFieldValue = textFieldValue,
+            onValueChange = { newValue ->
+                // Update the text value while keeping the cursor's position
+                textFieldValue = newValue
+                viewModel.updateAlgorithmCode(newValue.text) // Update ViewModel's algorithmCode
+            },
+            language = language,
+            parser = parser,
+            theme = theme,
+            readOnly = !isEditable
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
-            value = inputArray,
-            onValueChange = { inputArray = it },
-            label = { Text("Enter input array (comma-separated)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        // Run Button
         Button(
             onClick = {
                 val inputArrayParsed = parseInputArray(inputArray)
-                viewModel.runPythonCode(userCode, viewModel.arr.value.clone()) { resultText ->
-                    result = resultText
+                val userCode = textFieldValue.text
+                viewModel.checkPythonCode(userCode, inputArrayParsed) { resultText ->
+                    onClicked(resultText)
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Run")
+            Text(if (isEditable) "Run" else "Delete")
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Result: $result",
-            modifier = Modifier.padding(16.dp)
-        )
     }
 }
 

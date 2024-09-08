@@ -25,14 +25,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun QuizMain(
     quiz: List<Question>,
-    onClick: (Int) -> Unit
+    onQuizComplete: (Int, Map<Int, List<Int>>) -> Unit // Callback to return score and selected answers
 ) {
     var currentQuestionIndex by remember { mutableStateOf(0) }
-    val selectedAnswersMap = remember { mutableStateMapOf<Int, List<Int>>() }
+    val selectedAnswersMap = remember { mutableStateMapOf<Int, List<Int>>() } // Tracks selected answers
 
     val currentQuestion = quiz[currentQuestionIndex]
 
     Column(modifier = Modifier.padding(16.dp)) {
+        // Display current question
         Text(
             text = currentQuestion.question,
             style = MaterialTheme.typography.headlineSmall,
@@ -42,6 +43,7 @@ fun QuizMain(
         // Retrieve the selected answers for the current question
         val selectedAnswers = selectedAnswersMap[currentQuestionIndex] ?: emptyList()
 
+        // Display possible answers
         currentQuestion.answers.forEach { answer ->
             val isSelected = selectedAnswers.contains(answer.id)
             Row(
@@ -52,7 +54,6 @@ fun QuizMain(
                         val updatedAnswers = selectedAnswers.toMutableList().apply {
                             if (isSelected) remove(answer.id) else add(answer.id)
                         }
-                        // Update the map with a new list to trigger recomposition
                         selectedAnswersMap[currentQuestionIndex] = updatedAnswers
                     }
                     .padding(8.dp)
@@ -71,10 +72,12 @@ fun QuizMain(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Navigation buttons: Back and Next/Finish
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Back button
             Button(
                 onClick = {
                     if (currentQuestionIndex > 0) {
@@ -88,13 +91,15 @@ fun QuizMain(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Next or Finish button
             Button(
                 onClick = {
                     if (currentQuestionIndex < quiz.size - 1) {
                         currentQuestionIndex++
                     } else {
+                        // Calculate score and pass the selected answers back to QuizComponent
                         val score = calculateScore(quiz, selectedAnswersMap)
-                        onClick(score)
+                        onQuizComplete(score, selectedAnswersMap) // Send score and answers
                     }
                 }
             ) {

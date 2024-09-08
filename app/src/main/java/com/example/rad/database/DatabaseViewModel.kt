@@ -38,4 +38,24 @@ class DatabaseViewModel(
             algorithmDao.deleteAlgorithm(name)
         }
     }
+
+    fun updateAlgorithm(name: String, code: String) {
+        viewModelScope.launch {
+            algorithmDao.updateAlgorithm(name, code)
+        }
+    }
+
+    fun insertQuizHistory(quizHistory: QuizHistory) {
+        viewModelScope.launch {
+            algorithmDao.insertQuizHistory(quizHistory)
+        }
+    }
+
+    // Get quiz history for a particular algorithm
+    fun getQuizHistory(algorithmName: String, callback: (List<QuizHistory>) -> Unit) {
+        viewModelScope.launch {
+            val history = algorithmDao.getQuizHistory(algorithmName)
+            callback(history)
+        }
+    }
 }

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,7 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PanTool
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -60,7 +64,11 @@ import com.example.rad.components.VisComponent
 import com.example.rad.components.VisMain
 import com.example.rad.database.DatabaseComponent
 import com.example.rad.database.DatabaseViewModel
-import com.example.rad.highlighting.SyntaxComponent
+import com.example.rad.database.InformationAndQuizScreen
+import com.example.rad.database.InsertOrChangeAlgorithm
+import com.example.rad.database.PreviewOrDeleteAlgorithm
+import com.example.rad.database.VisualizerScreen
+// import com.example.rad.highlighting.SyntaxComponent
 import com.example.rad.highlighting.WebComponent
 import com.example.rad.quiz.Answer
 import com.example.rad.quiz.Question
@@ -75,6 +83,143 @@ import io.github.cdimascio.dotenv.Configuration
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
 
+@Composable
+fun MainApp(
+    databaseViewModel: DatabaseViewModel,
+    viewModel: AlgorithmViewModel,
+    chatViewModel: ChatViewModel
+) {
+    var isDarkTheme by remember { mutableStateOf(false) }
+
+    RadTheme(darkTheme = isDarkTheme) {
+        MainScreen(
+            databaseViewModel = databaseViewModel,
+            viewModel = viewModel,
+            chatViewModel = chatViewModel,
+            isDarkTheme = isDarkTheme,
+            onThemeToggle = { isDarkTheme = !isDarkTheme }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen(
+    databaseViewModel: DatabaseViewModel,
+    viewModel: AlgorithmViewModel,
+    chatViewModel: ChatViewModel,
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit
+) {
+    val navController = rememberNavController()
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Theme Switcher and Navigation") },
+                actions = {
+                    Switch(
+                        checked = isDarkTheme,
+                        onCheckedChange = { onThemeToggle() }
+                    )
+                }
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
+        }
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(it)
+        ) {
+            composable("home") {
+                HomeScreen(navController = navController)
+            }
+            composable("insertOrChange") {
+                InsertOrChangeAlgorithm(databaseViewModel = databaseViewModel, viewModel = viewModel)
+            }
+            composable("previewOrDelete") {
+                PreviewOrDeleteAlgorithm(databaseViewModel = databaseViewModel, viewModel = viewModel)
+            }
+            composable("visualizer") {
+                VisualizerScreen(databaseViewModel = databaseViewModel, viewModel = viewModel)
+            }
+            composable("informationAndQuiz") {
+                InformationAndQuizScreen(
+                    databaseViewModel = databaseViewModel,
+                    chatViewModel = chatViewModel,
+                    viewModel = viewModel
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeScreen(navController: NavController) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Button(
+            onClick = { navController.navigate("insertOrChange") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Insert or Change Algorithm")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { navController.navigate("previewOrDelete") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Preview or Delete Algorithm")
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    NavigationBar {
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Home, contentDescription = "Main Screen") },
+            label = { Text("Home") },
+            selected = navController.currentDestination?.route == "home",
+            onClick = {
+                navController.navigate("home") {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            }
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Star, contentDescription = "Visualizer") },
+            label = { Text("Visualizer") },
+            selected = navController.currentDestination?.route == "visualizer",
+            onClick = {
+                navController.navigate("visualizer") {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            }
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Info, contentDescription = "Information and Quiz") },
+            label = { Text("Info & Quiz") },
+            selected = navController.currentDestination?.route == "informationAndQuiz",
+            onClick = {
+                navController.navigate("informationAndQuiz") {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            }
+        )
+    }
+}
+
+
 class MainActivity : ComponentActivity() {
     private val viewModel: AlgorithmViewModel by lazy {
         val viewModelProviderFactory = AlgorithmViewModelProvider(Algorithm())
@@ -85,7 +230,6 @@ class MainActivity : ComponentActivity() {
         ViewModelProvider(this)[ChatViewModel::class.java]
     }
 
-    // private val databaseViewModel: DatabaseViewModel by viewModels()
     private val databaseViewModel: DatabaseViewModel by lazy {
         ViewModelProvider(this)[DatabaseViewModel::class.java]
     }
@@ -104,6 +248,13 @@ class MainActivity : ComponentActivity() {
         OPENAI_API_KEY = dotenv["OPENAI_API_KEY"]
 
         setContent {
+            // this.deleteDatabase("algorithm_database")
+
+            // Visualization component, syntax highlighter, Python code input
+            // Once the user inputs proper Python code (in desired format), it's ready for visualization
+            // Syntax highlighter is currently of no use, but idea is following
+            // I want to input the Python code through this syntax highlighter, and not normal text area
+            // This should be somehow integrated with the Python code input
             /*
             var isDarkTheme by remember { mutableStateOf(false) }
             RadTheme(darkTheme = isDarkTheme) {
@@ -111,6 +262,7 @@ class MainActivity : ComponentActivity() {
             }
             */
 
+            // This part was used to test ChatGPT API calls, currently not of use
             /*
             val userCodeStatic = """
             def sort(arr):
@@ -155,6 +307,8 @@ class MainActivity : ComponentActivity() {
             }
             */
 
+            // When user clicks the button, ChatGPT should return quiz in specific format
+            // This component is used to represent that quiz in a proper way
             /*
             val input = """
                 [
@@ -224,6 +378,8 @@ class MainActivity : ComponentActivity() {
             QuizComponent(quiz = quiz)
             */
 
+            // When user clicks the button, ChatGPT should return some details about the algorithm
+            // This component is used to represent those details in a proper way
             /*
             val input = """
                 {
@@ -238,6 +394,8 @@ class MainActivity : ComponentActivity() {
             AlgorithmComponent(algorithmInfo = algorithmInfo)
             */
 
+            // When user clicks the button, ChatGPT should return some comparison with common known algorithms
+            // This component is used to represent that comparison in a proper way
             /*
             val input = """
                 [
@@ -274,13 +432,32 @@ class MainActivity : ComponentActivity() {
             )
             */
 
+            // This should be integrated with the Python code input (and syntax highlighter, that should be integrated with the Python code input)
+            // Once the user inputs the Python code in desired format, by using this component, it should be added to the database
+            // It also has option for algorithm display, and its deletion
+            // DatabaseComponent(databaseViewModel = databaseViewModel, viewModel = viewModel)
+            // InsertOrChangeAlgorithm(databaseViewModel = databaseViewModel, viewModel = viewModel)
+            // PreviewOrDeleteAlgorithm(databaseViewModel = databaseViewModel, viewModel = viewModel)
+
+            // MainScreen(databaseViewModel = databaseViewModel, viewModel = viewModel, chatViewModel = chatViewModel)
+            MainApp(
+                databaseViewModel = databaseViewModel,
+                viewModel = viewModel,
+                chatViewModel = chatViewModel
+            )
+
             /*
-            DatabaseComponent(databaseViewModel = databaseViewModel)
+            InformationAndQuizScreen(
+                databaseViewModel = databaseViewModel,
+                chatViewModel = chatViewModel,
+                viewModel = viewModel
+            )
             */
         }
     }
 }
 
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(viewModel: AlgorithmViewModel, isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
@@ -304,8 +481,8 @@ fun MainScreen(viewModel: AlgorithmViewModel, isDarkTheme: Boolean, onThemeToggl
     ) { innerPadding ->
         NavHost(navController = navController, startDestination = "vis", modifier = Modifier.padding(innerPadding)) {
             composable("vis") { VisComponent(viewModel = viewModel) }
-            composable("syntax") { SyntaxComponent() }
-            composable("python") { PythonComponent(viewModel = viewModel) }
+            // composable("syntax") { SyntaxComponent() }
+            // composable("python") { PythonComponent(viewModel = viewModel) }
         }
     }
 }
@@ -319,12 +496,14 @@ fun BottomNavigationBar(navController: NavController) {
             selected = navController.currentBackStackEntry?.destination?.route == "vis",
             onClick = { navController.navigate("vis") }
         )
+        /*
         NavigationBarItem(
             icon = { Icon(Icons.Default.Code, contentDescription = "Syntax") },
             label = { Text("Syntax") },
             selected = navController.currentBackStackEntry?.destination?.route == "syntax",
             onClick = { navController.navigate("syntax") }
         )
+        */
         NavigationBarItem(
             icon = { Icon(Icons.Default.PanTool, contentDescription = "Python") },
             label = { Text("Python") },
@@ -333,3 +512,4 @@ fun BottomNavigationBar(navController: NavController) {
         )
     }
 }
+*/

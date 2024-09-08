@@ -106,11 +106,11 @@ val DarkColors = darkColorScheme(
 @Composable
 fun RadTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
+    // val colorScheme = if (darkTheme) DarkColors else LightColors
+    val colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
 
     MaterialTheme(
         colorScheme = colorScheme,

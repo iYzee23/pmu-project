@@ -46,6 +46,8 @@ class ChatRepository {
                             Log.d("GPT_Message", content)
                             chatViewModel.gptResponse.postValue(content)
                             chatViewModel.gptError.postValue("")
+
+                            chatViewModel.updateCurrType(callType)
                         }
                     }
                     else {

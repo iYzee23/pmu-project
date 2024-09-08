@@ -8,7 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = [Algorithm::class], version = 1)
+@Database(entities = [Algorithm::class, QuizHistory::class], version = 1)
 abstract class AlgorithmDatabase : RoomDatabase() {
     abstract fun algorithmDao(): AlgorithmDao
 
@@ -23,7 +23,8 @@ abstract class AlgorithmDatabase : RoomDatabase() {
                     AlgorithmDatabase::class.java,
                     "algorithm_database"
                 )
-                    .addCallback(SeedDatabaseCallback(scope))
+                    // .addCallback(SeedDatabaseCallback(scope))
+                    // .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
@@ -59,7 +60,12 @@ abstract class AlgorithmDatabase : RoomDatabase() {
                     return steps
             """.trimIndent()
 
-            algorithmDao.insertAlgorithm(Algorithm(name = "Insertion Sort", code = insertionSortCode))
+            algorithmDao.insertAlgorithm(
+                Algorithm(
+                    name = "Insertion Sort",
+                    code = insertionSortCode
+                )
+            )
         }
     }
 }

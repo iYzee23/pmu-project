@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 fun QuizResult(
     score: Int,
     totalQuestions: Int,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -33,7 +33,7 @@ fun QuizResult(
             style = MaterialTheme.typography.headlineMedium
         )
         Button(onClick = onClick) {
-            Text("Restart")
+            Text("Close")
         }
     }
 }
