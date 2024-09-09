@@ -1,5 +1,6 @@
 package com.example.rad.database
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.rad.algorithm.AlgorithmViewModel
 import com.example.rad.components.PythonComponent
@@ -40,10 +43,9 @@ fun InsertOrChangeAlgorithm(
         viewModel.updateAlgorithmCode("")
     }
 
-    // Load all algorithm names
     LaunchedEffect(Unit) {
         databaseViewModel.getAllAlgorithmNames { names ->
-            algorithmNames = listOf("") + names // Add empty option for new algorithm
+            algorithmNames = listOf("") + names
         }
     }
 
@@ -51,8 +53,9 @@ fun InsertOrChangeAlgorithm(
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Dropdown to select or insert algorithm
         ExposedDropdownMenuBox(
             expanded = isDropdownExpanded,
             onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
@@ -60,11 +63,18 @@ fun InsertOrChangeAlgorithm(
             OutlinedTextField(
                 value = selectedAlgorithmName,
                 onValueChange = {},
-                label = { Text("Select or Insert Algorithm") },
+                label = {
+                    Text(
+                        "Select or Insert Algorithm",
+                        style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.onBackground)
+                    )
+                },
                 readOnly = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor()
+                    .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                    .padding(8.dp)
             )
             ExposedDropdownMenu(
                 expanded = isDropdownExpanded,
@@ -76,13 +86,13 @@ fun InsertOrChangeAlgorithm(
                         onClick = {
                             selectedAlgorithmName = name
                             isDropdownExpanded = false
-                            isNameFieldEnabled = name.isEmpty() // Enable text field for new algorithm
+                            isNameFieldEnabled = name.isEmpty()
                             if (name.isNotEmpty()) {
                                 databaseViewModel.getAlgorithm(name) { algorithm ->
                                     viewModel.updateAlgorithmCode(algorithm?.code ?: "")
                                 }
                             } else {
-                                viewModel.updateAlgorithmCode("") // Clear for new algorithm
+                                viewModel.updateAlgorithmCode("")
                             }
                         }
                     )
@@ -92,55 +102,59 @@ fun InsertOrChangeAlgorithm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Algorithm name input (enabled only for new algorithms)
         OutlinedTextField(
             value = selectedAlgorithmName,
             onValueChange = { selectedAlgorithmName = it },
-            label = { Text("Algorithm Name") },
+            label = {
+                Text("Algorithm Name", style = MaterialTheme.typography.labelLarge)
+            },
             enabled = isNameFieldEnabled,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                .padding(8.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Code writing hint for the user
-        Text(
-            text = """
-                - Function must be named "sort" and have exactly one parameter "arr" that represents the array to be sorted or modified.
-                - Function must contain a list named "steps", which is the return value of the function.
-                - In the "steps" list, each new iteration of the algorithm should be placed.
-            """.trimIndent(),
-            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary),
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.padding(bottom = 16.dp)
-        )
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                SectionedHint(title = "Function Name", text = "Function must be named \"sort\" and have exactly one parameter \"arr\" that represents the array to be sorted or modified.")
+                Spacer(modifier = Modifier.height(8.dp))
+                SectionedHint(title = "Steps List", text = "Function must contain a list named \"steps\", which is the return value of the function.")
+                Spacer(modifier = Modifier.height(8.dp))
+                SectionedHint(title = "New Iterations", text = "In the \"steps\" list, each new iteration of the algorithm should be placed.")
+            }
+        }
 
-        // PythonComponent for algorithm code input
         PythonComponent(
             viewModel = viewModel,
             inputArrayFix = "1, 2, 3, 4, 5",
             onClicked = { resultText ->
                 result = resultText
                 if (resultText == "No errors found.") {
-                    // If creating a new algorithm, check if the name already exists
                     if (isNameFieldEnabled && algorithmNames.contains(selectedAlgorithmName)) {
                         result = "Cannot insert algorithm with the name that already exists."
                     } else {
-                        // Check if the algorithm exists and then either update or insert it
                         databaseViewModel.getAlgorithm(selectedAlgorithmName) { existingAlgorithm ->
                             if (existingAlgorithm != null) {
-                                // Algorithm exists, update it
                                 databaseViewModel.updateAlgorithm(selectedAlgorithmName, viewModel.algorithmCode.value) { names ->
-                                    algorithmNames = listOf("") + names // Update the dropdown with the new list
+                                    algorithmNames = listOf("") + names
                                     result = "Algorithm has been successfully updated."
                                 }
                             } else {
-                                // Algorithm doesn't exist, insert new one
                                 val newAlgorithm = Algorithm(
                                     name = selectedAlgorithmName,
                                     code = viewModel.algorithmCode.value
                                 )
                                 databaseViewModel.insertAlgorithm(newAlgorithm) { names ->
-                                    algorithmNames = listOf("") + names // Update the dropdown with the new list
+                                    algorithmNames = listOf("") + names
                                     result = "Algorithm has been successfully inserted."
                                 }
                             }
@@ -154,7 +168,35 @@ fun InsertOrChangeAlgorithm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display result
-        Text(text = "Result: $result")
+        OutlinedTextField(
+            value = result,
+            onValueChange = {},
+            label = { Text("Result") },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small)
+                .padding(8.dp)
+        )
+    }
+}
+
+@Composable
+fun SectionedHint(title: String, text: String) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }

@@ -9,6 +9,6 @@ data class QuizHistory(
     val algorithmName: String = "",
     val dateTaken: String = "",
     val score: Int = 0,
-    val quizQuestions: String = "", // JSON-encoded quiz questions
-    val quizAnswers: String = "" // JSON-encoded selected answers
+    val quizQuestions: String = "",
+    val quizAnswers: String = ""
 )

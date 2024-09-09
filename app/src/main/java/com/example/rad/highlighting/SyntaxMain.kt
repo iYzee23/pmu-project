@@ -2,21 +2,21 @@ package com.example.rad.highlighting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -59,17 +59,24 @@ fun SyntaxMain(
         )
     }
 
+    // Shared ScrollState to synchronize vertical scrolling
+    val scrollState = rememberScrollState()
+
     Row(
         modifier = Modifier
             .background(Color.DarkGray)
             .fillMaxWidth()
             .height(300.dp)
     ) {
-        if (lineTops.isNotEmpty()) {
-            Box(modifier = Modifier.padding(horizontal = 4.dp)) {
-                lineTops.forEachIndexed { index, top ->
+        // Line numbers column, vertically scrollable
+        Box(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(start = 8.dp, end = 8.dp)
+        ) {
+            Column {
+                lineTops.forEachIndexed { index, _ ->
                     Text(
-                        modifier = Modifier.offset(y = with(density) { top.toDp() }),
                         text = (index + 1).toString(),
                         color = Color.White,
                         fontSize = 16.sp
@@ -77,13 +84,16 @@ fun SyntaxMain(
                 }
             }
         }
+
+        // The code field, vertically scrollable with the same ScrollState
         BasicTextField(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
+                .verticalScroll(scrollState) // Sync vertical scroll with line numbers
                 .onPreviewKeyEvent { event ->
+                    // Handle Enter Key: Indentation logic
                     if (event.key == Key.Enter && event.type == KeyEventType.KeyDown) {
-                        // Handle Enter Key: Indentation logic
                         val cursorPosition = textFieldValue.selection.start
                         val textBeforeCursor = textFieldValue.text.substring(0, cursorPosition)
                         val currentLine = textBeforeCursor.substringAfterLast('\n')

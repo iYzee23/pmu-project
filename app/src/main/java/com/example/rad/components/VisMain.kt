@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -23,21 +25,21 @@ fun VisMain(
     BoxWithConstraints(
         modifier = modifier
     ) {
-        val maxHeight = maxHeight - 75.dp
+        val maxHeight = maxHeight - 32.dp
         val itemWidth = remember {
             maxWidth / arr.size - 8.dp
         }
 
-        // Find the maximum value in the array to normalize all heights
         val maxValue = arr.maxOrNull()?.toFloat() ?: 1f
 
         Row(
-            modifier = modifier,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
             arr.forEach {
-                // Normalize the height by scaling it based on the maximum value and the available height
                 val normalizedHeight = (it * 1.0 / maxValue) * maxHeight
                 Box(
                     modifier = Modifier

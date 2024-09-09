@@ -1,13 +1,17 @@
 package com.example.rad.database
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,15 +40,19 @@ fun PreviewOrDeleteAlgorithm(
         viewModel.updateAlgorithmCode("")
     }
 
-    // Load algorithm names on launch
     LaunchedEffect(Unit) {
         databaseViewModel.getAllAlgorithmNames { names ->
             algorithmNames = names
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        // Dropdown for selecting an algorithm to view or delete
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         ExposedDropdownMenuBox(
             expanded = isDropdownExpanded,
             onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
@@ -52,11 +60,18 @@ fun PreviewOrDeleteAlgorithm(
             OutlinedTextField(
                 value = selectedAlgorithmName,
                 onValueChange = {},
-                label = { Text("Select Algorithm") },
+                label = {
+                    Text(
+                        "Select Algorithm",
+                        style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.onBackground)
+                    )
+                },
                 readOnly = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor()
+                    .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                    .padding(8.dp)
             )
             ExposedDropdownMenu(
                 expanded = isDropdownExpanded,
@@ -79,7 +94,6 @@ fun PreviewOrDeleteAlgorithm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Preview Algorithm Code in PythonComponent (read-only)
         PythonComponent(
             viewModel = viewModel,
             inputArrayFix = "1, 2, 3, 4, 5",
@@ -87,7 +101,7 @@ fun PreviewOrDeleteAlgorithm(
                 databaseViewModel.deleteAlgorithm(selectedAlgorithmName) { names ->
                     result = "Algorithm has been successfully deleted."
                     viewModel.updateAlgorithmCode("")
-                    algorithmNames = names // Update the dropdown with the new list
+                    algorithmNames = names
                 }
             },
             isEditable = false,
@@ -96,7 +110,15 @@ fun PreviewOrDeleteAlgorithm(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display result
-        Text(text = "Result: $result")
+        OutlinedTextField(
+            value = result,
+            onValueChange = {},
+            label = { Text("Result") },
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small)
+                .padding(8.dp)
+        )
     }
 }

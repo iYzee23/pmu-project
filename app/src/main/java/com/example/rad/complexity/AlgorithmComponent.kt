@@ -29,7 +29,7 @@ fun AlgorithmComponent(
         verticalArrangement = Arrangement.Center
     ) {
         Button(onClick = { showDialog = true }) {
-            Text(text = "Show Algorithm Info")
+            Text(text = "Show Compl")
         }
 
         if (showDialog) {

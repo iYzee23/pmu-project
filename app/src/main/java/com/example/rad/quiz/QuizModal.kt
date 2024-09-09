@@ -41,14 +41,12 @@ fun QuizModal(
                     .verticalScroll(rememberScrollState())
             ) {
                 if (quizCompleted) {
-                    // Display quiz result if completed
                     QuizResult(
                         score = score,
                         totalQuestions = quiz.size,
                         onClick = onClose
                     )
                 } else {
-                    // Display quiz questions
                     QuizMain(
                         quiz = quiz,
                         onQuizComplete = onQuizComplete
@@ -57,7 +55,6 @@ fun QuizModal(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Close button
                 Button(
                     onClick = onClose,
                     modifier = Modifier.align(Alignment.End)

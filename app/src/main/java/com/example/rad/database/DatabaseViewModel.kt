@@ -27,29 +27,26 @@ class DatabaseViewModel(
         }
     }
 
-    // Insert an algorithm and then get all names
     fun insertAlgorithm(algorithm: Algorithm, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.insertAlgorithm(algorithm)
-            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            val names = algorithmDao.getAllAlgorithmNames()
             callback(names)
         }
     }
 
-    // Delete an algorithm and then get all names
     fun deleteAlgorithm(name: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.deleteAlgorithm(name)
-            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            val names = algorithmDao.getAllAlgorithmNames()
             callback(names)
         }
     }
 
-    // Update an algorithm and then get all names
     fun updateAlgorithm(name: String, code: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             algorithmDao.updateAlgorithm(name, code)
-            val names = algorithmDao.getAllAlgorithmNames() // Fetch the updated names list
+            val names = algorithmDao.getAllAlgorithmNames()
             callback(names)
         }
     }
@@ -60,7 +57,6 @@ class DatabaseViewModel(
         }
     }
 
-    // Get quiz history for a particular algorithm
     fun getQuizHistory(algorithmName: String, callback: (List<QuizHistory>) -> Unit) {
         viewModelScope.launch {
             val history = algorithmDao.getQuizHistory(algorithmName)

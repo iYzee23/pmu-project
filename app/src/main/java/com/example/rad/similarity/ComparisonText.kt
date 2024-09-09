@@ -19,7 +19,7 @@ fun ComparisonText(
     Text(
         text = label,
         style = MaterialTheme.typography.titleLarge.copy(
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             shadow = Shadow(
                 color = Color.Gray,
@@ -32,7 +32,7 @@ fun ComparisonText(
     Text(
         text = content,
         style = MaterialTheme.typography.bodyLarge.copy(
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.secondary
         ),
         modifier = Modifier.padding(bottom = 8.dp)
     )

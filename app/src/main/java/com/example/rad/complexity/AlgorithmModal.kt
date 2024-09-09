@@ -55,7 +55,7 @@ fun AlgorithmModal(
                 Text(
                     text = info.intro,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.DarkGray // Slightly gray text for contrast
+                        color = MaterialTheme.colorScheme.secondary
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -64,7 +64,7 @@ fun AlgorithmModal(
                 Text(
                     text = info.timeComplexity,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.secondary
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -73,7 +73,7 @@ fun AlgorithmModal(
                 Text(
                     text = info.spaceComplexity,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.secondary
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -82,7 +82,7 @@ fun AlgorithmModal(
                 Text(
                     text = info.insights,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.secondary
                     ),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -91,7 +91,7 @@ fun AlgorithmModal(
                 Text(
                     text = info.conclusion,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.secondary
                     ),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -112,7 +112,7 @@ fun SectionTitle(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleLarge.copy(
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             shadow = Shadow(
                 color = Color.Gray,

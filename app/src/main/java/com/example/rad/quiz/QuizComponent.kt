@@ -24,8 +24,8 @@ import java.util.Locale
 @Composable
 fun QuizComponent(
     quiz: List<Question>,
-    algorithmName: String,  // Add the algorithm name to save quiz history
-    databaseViewModel: DatabaseViewModel  // Pass the viewModel to save quiz results
+    algorithmName: String,
+    databaseViewModel: DatabaseViewModel
 ) {
     var showQuizModal by remember { mutableStateOf(false) }
     var quizCompleted by remember { mutableStateOf(false) }
@@ -38,12 +38,10 @@ fun QuizComponent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Button to open the Quiz Modal
         Button(onClick = { showQuizModal = true }) {
             Text(text = if (quizCompleted) "Show Quiz Result" else "Start Quiz")
         }
 
-        // Show modal for the quiz
         if (showQuizModal) {
             QuizModal(
                 quiz = quiz,
@@ -54,11 +52,9 @@ fun QuizComponent(
                     quizCompleted = true
                     score = completedScore
 
-                    // Serialize the quiz questions and answers
                     val quizQuestionsJson = Gson().toJson(quiz)
                     val quizAnswersJson = Gson().toJson(selectedAnswersMap)
 
-                    // Save the quiz history to the database
                     val dateTaken = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
                     val quizHistory = QuizHistory(
                         algorithmName = algorithmName,

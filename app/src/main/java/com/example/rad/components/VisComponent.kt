@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +24,9 @@ fun VisComponent(
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             VisMain(
                 arr = viewModel.arr.value,
                 modifier = Modifier
@@ -45,7 +46,7 @@ fun VisComponent(
                 isPlaying = if (isFinished) !isFinished else isPlaying,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(75.dp)
+                    .height(60.dp)
             )
         }
     }

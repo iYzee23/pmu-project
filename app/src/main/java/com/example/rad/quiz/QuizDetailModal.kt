@@ -43,7 +43,6 @@ fun QuizDetailModal(history: QuizHistory, onDismiss: () -> Unit) {
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Date and score display
                 Text(
                     text = "Date: ${history.dateTaken}, Score: ${history.score}",
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -54,7 +53,6 @@ fun QuizDetailModal(history: QuizHistory, onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Deserialize the quiz questions and answers
                 val quizQuestions = Gson().fromJson(
                     history.quizQuestions,
                     Array<Question>::class.java
@@ -64,7 +62,6 @@ fun QuizDetailModal(history: QuizHistory, onDismiss: () -> Unit) {
                     Map::class.java
                 ) as Map<String, List<Double>>
 
-                // Display each question and user's selected answers
                 quizQuestions.forEachIndexed { index, question ->
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -77,7 +74,6 @@ fun QuizDetailModal(history: QuizHistory, onDismiss: () -> Unit) {
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    // Display answers with selected answer highlighted
                     question.answers.forEach { answer ->
                         val isSelected = quizAnswers[index.toString()]?.contains(answer.id.toDouble()) ?: false
                         Row(
@@ -106,7 +102,6 @@ fun QuizDetailModal(history: QuizHistory, onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Close button
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)

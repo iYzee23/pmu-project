@@ -1,5 +1,6 @@
 package com.example.rad.database
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,8 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,13 +32,11 @@ import com.example.rad.chatgpt.ChatViewModel
 import com.example.rad.complexity.AlgorithmComponent
 import com.example.rad.complexity.parseAlgorithmInfoJson
 import com.example.rad.components.PythonComponent
-import com.example.rad.quiz.Question
 import com.example.rad.quiz.QuizComponent
 import com.example.rad.quiz.QuizHistoryList
 import com.example.rad.quiz.parseQuizJson
 import com.example.rad.similarity.ComparisonComponent
 import com.example.rad.similarity.parseAlgorithmComparisonsJson
-import com.google.gson.Gson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,15 +53,14 @@ fun InformationAndQuizScreen(
     var showQuizHistory by remember { mutableStateOf(false) }
     var quizHistoryList by remember { mutableStateOf<List<QuizHistory>>(emptyList()) }
 
-    // GPT Response Handling
     val chatGResponse by chatViewModel.gptResponse.observeAsState(initial = "")
     val chatGError by chatViewModel.gptError.observeAsState(initial = "")
 
     LaunchedEffect(Unit) {
         viewModel.updateAlgorithmCode("")
+        chatViewModel.updateCurrType(-1)
     }
 
-    // Load algorithm names on launch
     LaunchedEffect(Unit) {
         databaseViewModel.getAllAlgorithmNames { names ->
             algorithmNames = names
@@ -73,8 +70,9 @@ fun InformationAndQuizScreen(
     Column(
         modifier = Modifier
             .padding(16.dp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Dropdown for selecting an algorithm
         ExposedDropdownMenuBox(
             expanded = isDropdownExpanded,
             onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
@@ -87,6 +85,8 @@ fun InformationAndQuizScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor()
+                    .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                    .padding(8.dp)
             )
             ExposedDropdownMenu(
                 expanded = isDropdownExpanded,
@@ -98,7 +98,6 @@ fun InformationAndQuizScreen(
                         onClick = {
                             selectedAlgorithmName = name
                             isDropdownExpanded = false
-                            // Fetch the algorithm code from the database when selected
                             databaseViewModel.getAlgorithm(name) { algorithm ->
                                 viewModel.updateAlgorithmCode(algorithm?.code ?: "")
                             }
@@ -106,24 +105,23 @@ fun InformationAndQuizScreen(
                             databaseViewModel.getQuizHistory(name) { history ->
                                 quizHistoryList = history
                             }
-
                         }
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row (
-            horizontalArrangement = Arrangement.spacedBy(16.dp), // Adds equal spacing between buttons
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().height(80.dp)
         ) {
             if (!showQuizHistory) {
                 Button(
                     onClick = { showQuizHistory = true },
-                    enabled = selectedAlgorithmName.isNotEmpty()
+                    enabled = selectedAlgorithmName.isNotEmpty(),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(0.5f)
                 ) {
                     Text(text = "Show History")
                 }
@@ -155,12 +153,13 @@ fun InformationAndQuizScreen(
                     gError = chatGError
                     Text(text = gError, color = Color.Red)
                 }
-            }
-            else {
+            } else {
                 Button(
-                    onClick = { showQuizHistory = false }
+                    onClick = { showQuizHistory = false },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(0.5f)
                 ) {
-                    Text(text = "Show Information page")
+                    Text(text = "Show Info Page")
                 }
             }
         }
@@ -169,9 +168,6 @@ fun InformationAndQuizScreen(
             QuizHistoryList(quizHistoryList)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Display Algorithm Code in PythonComponent (read-only)
         PythonComponent(
             viewModel = viewModel,
             inputArrayFix = "1, 2, 3, 4, 5",
@@ -182,7 +178,6 @@ fun InformationAndQuizScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Buttons for Quiz, Complexity, and Comparison
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
@@ -190,24 +185,30 @@ fun InformationAndQuizScreen(
             Button(
                 enabled = selectedAlgorithmName.isNotEmpty(),
                 onClick = {
-                chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)  // Quiz request
-            }) {
+                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)
+                },
+                shape = RoundedCornerShape(16.dp)
+            ) {
                 Text(text = "Quiz")
             }
 
             Button(
                 enabled = selectedAlgorithmName.isNotEmpty(),
                 onClick = {
-                chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 1)  // Complexity request
-            }) {
+                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 1)
+                },
+                shape = RoundedCornerShape(16.dp)
+            ) {
                 Text(text = "Complexity")
             }
 
             Button(
                 enabled = selectedAlgorithmName.isNotEmpty(),
                 onClick = {
-                chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 2)  // Comparison request
-            }) {
+                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 2)
+                },
+                shape = RoundedCornerShape(16.dp)
+            ) {
                 Text(text = "Comparison")
             }
         }

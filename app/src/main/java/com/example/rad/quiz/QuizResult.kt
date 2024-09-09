@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,8 +31,5 @@ fun QuizResult(
             text = "Your score: $score / $totalQuestions",
             style = MaterialTheme.typography.headlineMedium
         )
-        Button(onClick = onClick) {
-            Text("Close")
-        }
     }
 }
