@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -25,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.rad.algorithm.AlgorithmViewModel
 import com.example.rad.chatgpt.ChatViewModel
@@ -48,16 +51,22 @@ fun InformationAndQuizScreen(
     var selectedAlgorithmName by remember { mutableStateOf("") }
     var algorithmNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    var gResponse by remember { mutableStateOf("") }
-    var gError by remember { mutableStateOf("") }
     var showQuizHistory by remember { mutableStateOf(false) }
     var quizHistoryList by remember { mutableStateOf<List<QuizHistory>>(emptyList()) }
 
-    val chatGResponse by chatViewModel.gptResponse.observeAsState(initial = "")
-    val chatGError by chatViewModel.gptError.observeAsState(initial = "")
+    val quizResponse by chatViewModel.quizResponse.observeAsState("")
+    val complexityResponse by chatViewModel.complexityResponse.observeAsState("")
+    val comparisonResponse by chatViewModel.comparisonResponse.observeAsState("")
+
+    val isLoading by chatViewModel.isLoading.observeAsState(false)
+    val isLoadingQuiz by chatViewModel.isLoadingQuiz.observeAsState(false)
+    val isLoadingComplexity by chatViewModel.isLoadingComplexity.observeAsState(false)
+    val isLoadingComparison by chatViewModel.isLoadingComparison.observeAsState(false)
+    val isGeneratingNewQuiz by chatViewModel.isGeneratingNewQuiz.observeAsState(false)
 
     LaunchedEffect(Unit) {
         viewModel.updateAlgorithmCode("")
+        chatViewModel.clearResponses()
         chatViewModel.updateCurrType(-1)
     }
 
@@ -71,6 +80,7 @@ fun InformationAndQuizScreen(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
+            .then(if (!showQuizHistory) Modifier.verticalScroll(rememberScrollState()) else Modifier)
             .background(MaterialTheme.colorScheme.background)
     ) {
         ExposedDropdownMenuBox(
@@ -101,7 +111,6 @@ fun InformationAndQuizScreen(
                             databaseViewModel.getAlgorithm(name) { algorithm ->
                                 viewModel.updateAlgorithmCode(algorithm?.code ?: "")
                             }
-
                             databaseViewModel.getQuizHistory(name) { history ->
                                 quizHistoryList = history
                             }
@@ -121,43 +130,21 @@ fun InformationAndQuizScreen(
                     onClick = { showQuizHistory = true },
                     enabled = selectedAlgorithmName.isNotEmpty(),
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Show History")
                 }
-
-                if (chatGResponse.isNotEmpty()) {
-                    gResponse = chatGResponse
-                    when (chatViewModel.currType.value) {
-                        0 -> {
-                            val quiz = parseQuizJson(gResponse)
-                            QuizComponent(
-                                quiz = quiz,
-                                algorithmName = selectedAlgorithmName,
-                                databaseViewModel = databaseViewModel
-                            )
-                        }
-                        1 -> {
-                            val algorithmInfo = parseAlgorithmInfoJson(gResponse)
-                            AlgorithmComponent(algorithmInfo = algorithmInfo)
-                        }
-                        2 -> {
-                            val (algorithmComparisons, improvementSuggestions) = parseAlgorithmComparisonsJson(gResponse)
-                            ComparisonComponent(
-                                algorithmComparisons = algorithmComparisons,
-                                improvementSuggestions = improvementSuggestions!!
-                            )
-                        }
-                    }
-                } else if (chatGError.isNotEmpty()) {
+                /*
+                else if (chatGError.isNotEmpty()) {
                     gError = chatGError
                     Text(text = gError, color = Color.Red)
                 }
+                */
             } else {
                 Button(
                     onClick = { showQuizHistory = false },
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Show Info Page")
                 }
@@ -167,49 +154,101 @@ fun InformationAndQuizScreen(
         if (showQuizHistory) {
             QuizHistoryList(quizHistoryList)
         }
+        else {
+            PythonComponent(
+                viewModel = viewModel,
+                inputArrayFix = "1, 2, 3, 4, 5",
+                onClicked = {},
+                isEditable = false,
+                visibleButton = false
+            )
 
-        PythonComponent(
-            viewModel = viewModel,
-            inputArrayFix = "1, 2, 3, 4, 5",
-            onClicked = {},
-            isEditable = false,
-            visibleButton = false
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Button(
-                enabled = selectedAlgorithmName.isNotEmpty(),
-                onClick = {
-                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)
-                },
-                shape = RoundedCornerShape(16.dp)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(text = "Quiz")
-            }
+                if (quizResponse.isEmpty()) {
+                    Button(
+                        onClick = {
+                            chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)
+                        },
+                        enabled = selectedAlgorithmName.isNotEmpty() && !isLoading,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (isLoadingQuiz) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            Text(text = "Generate quiz")
+                        }
+                    }
+                } else {
+                    val quiz = parseQuizJson(quizResponse)
+                    QuizComponent(
+                        quiz = quiz,
+                        algorithmName = selectedAlgorithmName,
+                        databaseViewModel = databaseViewModel,
+                        onGenerateNewQuiz = {
+                            chatViewModel.clearQuizResponse()
+                            chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 0)
+                        },
+                        chatViewModel = chatViewModel
+                    )
+                }
 
-            Button(
-                enabled = selectedAlgorithmName.isNotEmpty(),
-                onClick = {
-                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 1)
-                },
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(text = "Complexity")
-            }
+                if (complexityResponse.isEmpty()) {
+                    Button(
+                        onClick = {
+                            chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 1)
+                        },
+                        enabled = selectedAlgorithmName.isNotEmpty() && !isLoading,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (isLoadingComplexity) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            Text(text = "Calculate Complexity")
+                        }
+                    }
+                } else {
+                    val algorithmInfo = parseAlgorithmInfoJson(complexityResponse)
+                    AlgorithmComponent(algorithmInfo = algorithmInfo)
+                }
 
-            Button(
-                enabled = selectedAlgorithmName.isNotEmpty(),
-                onClick = {
-                    chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 2)
-                },
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(text = "Comparison")
+                if (comparisonResponse.isEmpty()) {
+                    Button(
+                        onClick = {
+                            chatViewModel.createChatCompletion(viewModel.algorithmCode.value, 2)
+                        },
+                        enabled = selectedAlgorithmName.isNotEmpty() && !isLoading,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (isLoadingComparison) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            Text(text = "Get Comparisons")
+                        }
+                    }
+                } else {
+                    val (algorithmComparisons, improvementSuggestions) = parseAlgorithmComparisonsJson(comparisonResponse)
+                    ComparisonComponent(
+                        algorithmComparisons = algorithmComparisons,
+                        improvementSuggestions = improvementSuggestions!!
+                    )
+                }
             }
         }
     }

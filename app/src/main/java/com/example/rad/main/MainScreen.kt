@@ -2,6 +2,7 @@ package com.example.rad.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -12,6 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +41,14 @@ fun MainScreen(
     onThemeToggle: () -> Unit
 ) {
     val navController = rememberNavController()
+    val currentRoute = remember { mutableStateOf("home") }
+
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+            currentRoute.value = backStackEntry.destination.route ?: "home"
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,11 +64,17 @@ fun MainScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { navController.navigate("settings") }
+                        onClick = {
+                            if (currentRoute.value == "settings") {
+                                navController.popBackStack()
+                            } else {
+                                navController.navigate("settings")
+                            }
+                        }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            imageVector = if (currentRoute.value == "settings") Icons.Default.ArrowBack else Icons.Default.Settings,
+                            contentDescription = if (currentRoute.value == "settings") "Back" else "Settings",
                             tint = Color.White
                         )
                     }
@@ -100,3 +118,4 @@ fun MainScreen(
         }
     }
 }
+
