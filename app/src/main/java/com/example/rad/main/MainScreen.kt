@@ -1,21 +1,20 @@
 package com.example.rad.main
 
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,19 +51,13 @@ fun MainScreen(
                     )
                 },
                 actions = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(end = 16.dp)
+                    IconButton(
+                        onClick = { navController.navigate("settings") }
                     ) {
-                        Switch(
-                            checked = isDarkTheme,
-                            onCheckedChange = { onThemeToggle() },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                uncheckedThumbColor = Color.LightGray,
-                                checkedTrackColor = Color(0xFFB39DDB),
-                                uncheckedTrackColor = Color(0xFFB39DDB),
-                            )
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = Color.White
                         )
                     }
                 },
@@ -100,6 +93,9 @@ fun MainScreen(
                     chatViewModel = chatViewModel,
                     viewModel = viewModel
                 )
+            }
+            composable("settings") {
+                SettingsScreen(isDarkTheme = isDarkTheme, onThemeToggle = onThemeToggle)
             }
         }
     }

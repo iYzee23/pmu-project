@@ -11,26 +11,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.example.rad.algorithm.AlgorithmViewModel
 
 @Composable
 fun VisMain(
     modifier: Modifier = Modifier,
-    arr: IntArray
+    arr: IntArray,
+    viewModel: AlgorithmViewModel
 ) {
+    val isReady by viewModel.isAlgorithmLoaded
+
     BoxWithConstraints(
         modifier = modifier
     ) {
         val maxHeight = maxHeight - 32.dp
         val itemWidth = remember {
-            maxWidth / arr.size - 8.dp
+            val currSize = if (arr.size > 20) arr.size else 20
+            maxWidth / currSize - 8.dp
         }
 
         val maxValue = arr.maxOrNull()?.toFloat() ?: 1f
+        val barColor = if (isReady) MaterialTheme.colorScheme.primary else Color.LightGray
 
         Row(
             modifier = Modifier
@@ -45,7 +53,7 @@ fun VisMain(
                     modifier = Modifier
                         .height(normalizedHeight)
                         .width(itemWidth)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(barColor)
                 )
             }
         }

@@ -10,6 +10,12 @@ import kotlinx.coroutines.launch
 class AlgorithmViewModel(
     private val algorithm: Algorithm
 ): ViewModel() {
+    val isAlgorithmLoaded = mutableStateOf(false)
+
+    fun resetVisualizer() {
+        isAlgorithmLoaded.value = false
+    }
+
     var algorithmCode = mutableStateOf("")
 
     fun updateAlgorithmCode(newCode: String) {
@@ -85,6 +91,8 @@ class AlgorithmViewModel(
                     sortedArrayLevels.add(stepList)
                 }
                 arr.value = sortedArrayLevels[0].toIntArray()
+                isAlgorithmLoaded.value = true
+
                 // resultMap["steps"].toString()
                 "No errors found."
             }

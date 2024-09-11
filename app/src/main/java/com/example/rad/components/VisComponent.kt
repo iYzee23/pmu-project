@@ -31,7 +31,8 @@ fun VisComponent(
                 arr = viewModel.arr.value,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f),
+                viewModel = viewModel
             )
 
             val isPlaying = viewModel.isPlaying.value
@@ -46,7 +47,8 @@ fun VisComponent(
                 isPlaying = if (isFinished) !isFinished else isPlaying,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp)
+                    .height(60.dp),
+                viewModel = viewModel
             )
         }
     }
